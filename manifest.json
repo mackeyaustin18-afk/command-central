@@ -1,0 +1,24 @@
+{
+  "name": "Command Central",
+  "short_name": "Command Central",
+  "description": "Your personal command center — projects, inbox, calendar, tasks and AI in one place.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#111110",
+  "theme_color": "#6359e9",
+  "icons": [
+    {
+      "src": "favicon-32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "favicon-180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
