@@ -710,7 +710,7 @@ html, body { height: 100%; font-family: var(--font); font-size: 15px; background
 .modal-cancel:hover { background: var(--surface2); }
 
 
-/* ── Mobile bottom nav (hidden on desktop) ── */
+/* ── Mobile bottom nav ── */
 .bottom-nav { display: none; }
 @media (max-width: 768px) {
   .sidebar { display: none; }
@@ -2406,7 +2406,6 @@ if ('serviceWorker' in navigator) {
     origSwitch(name);
     bnItems.forEach(function(b) { b.classList.toggle('active', b.dataset.panel === name); });
     var tb = document.getElementById('bn-badge-tasks');
-    var ib = document.getElementById('bn-badge-inbox');
     var ob = document.getElementById('badge-tasks');
     if (tb && ob) tb.textContent = ob.textContent;
   };
