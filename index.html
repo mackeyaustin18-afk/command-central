@@ -709,6 +709,52 @@ html, body { height: 100%; font-family: var(--font); font-size: 15px; background
 }
 .modal-cancel:hover { background: var(--surface2); }
 
+
+/* -- Bottom navigation (mobile only) -- */
+.bottom-nav { display: none; }
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .layout { flex-direction: column; }
+  .main { height: 100dvh; padding-bottom: 56px; }
+  .panel { padding: 1rem; }
+  .topbar { padding: 0.85rem 1rem; }
+  .search-wrap { display: none; }
+  .topbar-left { gap: 8px; }
+  .page-title { font-size: 16px; }
+  .metrics-row { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 1.25rem; }
+  .two-col { grid-template-columns: 1fr; gap: 1rem; }
+  .project-strip { grid-template-columns: 1fr; }
+  .projects-grid { grid-template-columns: 1fr; }
+  .modal { width: 100%; max-width: 100vw; border-radius: 14px 14px 0 0; }
+  .modal-overlay { align-items: flex-end; }
+  .bottom-nav {
+    display: flex; position: fixed; bottom: 0; left: 0; right: 0;
+    height: 56px; background: var(--surface);
+    border-top: 0.5px solid var(--border); z-index: 200;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .bn-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 2px;
+    border: none; background: none; color: var(--text3);
+    font-family: var(--font); font-size: 10px; cursor: pointer;
+    position: relative; padding: 6px 0 4px; transition: color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .bn-item:hover, .bn-item.active { color: var(--accent); }
+  .bn-badge {
+    position: absolute; top: 4px; right: calc(50% - 18px);
+    background: var(--accent); color: white; font-size: 9px;
+    font-weight: 600; padding: 1px 4px; border-radius: 20px;
+    min-width: 14px; text-align: center; font-family: var(--mono); line-height: 1.4;
+  }
+  .assistant-wrap { height: calc(100dvh - 130px); }
+}
+@media (display-mode: standalone) {
+  .topbar { padding-top: max(1.1rem, env(safe-area-inset-top)); }
+  .bottom-nav { padding-bottom: max(4px, env(safe-area-inset-bottom)); height: calc(56px + env(safe-area-inset-bottom)); }
+}
+
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1438,6 +1484,51 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
   });
 }
+</script>
+
+<!-- Mobile bottom navigation (hidden on desktop via CSS) -->
+<nav class="bottom-nav" id="bottom-nav">
+  <button class="bn-item active" data-panel="overview">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    <span>Home</span>
+  </button>
+  <button class="bn-item" data-panel="inbox">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    <span>Inbox</span><span class="bn-badge" id="bn-badge-inbox">4</span>
+  </button>
+  <button class="bn-item" data-panel="tasks">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    <span>Tasks</span><span class="bn-badge" id="bn-badge-tasks">5</span>
+  </button>
+  <button class="bn-item" data-panel="calendar">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span>Calendar</span>
+  </button>
+  <button class="bn-item" data-panel="assistant">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><circle cx="12" cy="12" r="3"/></svg>
+    <span>AI</span>
+  </button>
+</nav>
+<script>
+(function() {
+  var bnItems = document.querySelectorAll('.bn-item');
+  bnItems.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      bnItems.forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      if (typeof switchPanel === 'function') switchPanel(btn.dataset.panel);
+    });
+  });
+  var orig = window.switchPanel;
+  if (orig) window.switchPanel = function(name) {
+    orig(name);
+    bnItems.forEach(function(b) { b.classList.toggle('active', b.dataset.panel === name); });
+    var tb = document.getElementById('bn-badge-tasks');
+    var ib = document.getElementById('bn-badge-inbox');
+    var ob = document.getElementById('badge-tasks');
+    if (tb && ob) tb.textContent = ob.textContent;
+  };
+})();
 </script>
 </body>
 </html>    <!-- PROJECTS PANEL -->
@@ -2341,5 +2432,4 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 </body>
-<!-- mobile-update -->
                                                                                                                                                                                </html>
