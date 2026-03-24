@@ -20,4 +20,7 @@ EMAIL_COUNT: 10,
 EVENT_DAYS_AHEAD: 7,
 DRIVE_FILES_COUNT: 8,
 
+    // ── Step 3: Sync API URL (auto-configured) ──
+    SYNC_API: 'https://cc-sync-api-production.up.railway.app',
+
 };
