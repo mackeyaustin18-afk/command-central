@@ -252,6 +252,35 @@ html,body{height:100%;font-family:var(--font);font-size:15px;background:var(--bg
 .config-banner{background:var(--amber-bg);border:0.5px solid rgba(192,122,18,.25);border-radius:var(--r);padding:10px 14px;margin-bottom:1.25rem;display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--amber)}
 .config-banner a{color:var(--amber);font-weight:500}
 
+
+/* --- Agent status dot --- */
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;display:inline-block}
+.dot-green{background:#1a9e75}
+.dot-yellow{background:#c07a12}
+.dot-red{background:#d94040}
+/* --- Agent card --- */
+.agent-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rlg);padding:12px 14px;box-shadow:var(--shadow)}
+.agent-head{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.agent-av{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:white;flex-shrink:0;font-family:var(--mono)}
+.agent-name{font-size:13.5px;font-weight:500}
+.agent-role{font-size:11px;color:var(--text3)}
+.agent-body{font-size:12px;color:var(--text2);display:flex;flex-direction:column;gap:5px}
+.agent-row{display:flex;gap:6px}
+.agent-label{color:var(--text3);width:52px;flex-shrink:0}
+.agent-val{flex:1}
+.agent-blocked{color:var(--red)}
+/* --- CEO task rows --- */
+.ceo-row{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:0.5px solid var(--border)}
+.ceo-row:last-child{border-bottom:none}
+.ceo-p{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;flex-shrink:0;margin-top:2px;font-family:var(--mono)}
+.cp-P0{background:var(--red-bg);color:var(--red)}
+.cp-P1{background:var(--amber-bg);color:var(--amber)}
+.cp-P2{background:var(--accent-bg);color:var(--accent)}
+.cp-P3{background:var(--surface2);color:var(--text3)}
+.ceo-title{font-size:13px;font-weight:500;flex:1}
+.ceo-cat{font-size:11px;color:var(--text3);margin-top:2px}
+.ceo-action{font-size:11.5px;color:var(--text2);margin-top:4px;line-height:1.5}
+
 /* ─── Scrollbar ─── */
 ::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-track{background:transparent}
@@ -304,6 +333,15 @@ html,body{height:100%;font-family:var(--font);font-size:15px;background:var(--bg
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>
         Projects
         <span class="nbadge" id="badge-projects">0</span>
+      </button>
+      <button class="nav-btn" data-panel="ops">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+          <path d="M4.93 4.93a10 10 0 0 0 0 14.14"/>
+        </svg>
+        Agent Ops
+        <span class="nbadge" id="badge-ops">—</span>
       </button>
       <button class="nav-btn" data-panel="inbox">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
@@ -462,6 +500,22 @@ html,body{height:100%;font-family:var(--font);font-size:15px;background:var(--bg
   </div>
 </section>
 
+
+<!-- AGENT OPS -->
+<section class="panel" id="panel-ops">
+  <div class="sec-header">
+    <span class="sec-title">Agent Operations Board</span>
+    <span class="last-sync" id="ops-sync-time" style="font-size:11.5px;color:var(--text3);font-family:var(--mono)"></span>
+  </div>
+  <div class="sec-header" style="margin-bottom:.5rem">
+    <span class="sec-title">CEO Task Queue</span>
+  </div>
+  <div class="card" id="ops-ceo-tasks" style="margin-bottom:1.5rem"></div>
+  <div class="sec-header" style="margin-bottom:.5rem">
+    <span class="sec-title">Agent Status</span>
+  </div>
+  <div id="ops-agent-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:1.5rem"></div>
+</section>
   </main>
 </div>
 

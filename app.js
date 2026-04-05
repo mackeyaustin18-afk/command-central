@@ -61,6 +61,7 @@ document.getElementById('user-name').textContent = CONFIG.YOUR_NAME;
 document.getElementById('user-email').textContent = 'Not connected';
 document.getElementById('user-avatar').textContent = CONFIG.YOUR_NAME ? CONFIG.YOUR_NAME[0].toUpperCase() : '?';
 renderAll();
+  fetchOpsBoard();
 }
 
 // ── Google Auth ──
@@ -149,7 +150,7 @@ async function refreshAll() {
 const btn = document.getElementById('refresh-btn');
 btn.classList.add('spinning');
 try {
-await Promise.all([fetchEmails(), fetchEvents(), fetchDrive()]);
+await Promise.all([fetchEmails(), fetchEvents(), fetchDrive(), fetchOpsBoard()]);
 lastSync = new Date();
 document.getElementById('last-sync').textContent = 'Synced ' + lastSync.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
 } catch(e) {
@@ -645,3 +646,143 @@ function skeletonRows(n) {
 return Array.from({length:n},(_,i)=>`<div style="display:flex;gap:10px;padding:10px 14px;border-bottom:0.5px solid var(--border)"><div class="skeleton" style="width:28px;height:28px;border-radius:50%;flex-shrink:0"></div><div style="flex:1"><div class="skeleton" style="width:40%;margin-bottom:6px"></div><div class="skeleton" style="width:70%"></div></div></div>`).join('');
 }
 function skeletonCard(n) { return `<div>${skeletonRows(n)}</div>`; }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COMMAND CENTRAL — APP.JS OPS PATCH
+// Add this entire block to the bottom of app.js in command-central repo.
+// Also: add fetchOpsBoard() call inside refreshAll() (see comment below).
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── Ops state ──
+let liveOps = { agents: [], ceo_tasks: [], generated_at: null };
+
+// ── Fetch ops board from cc-sync-api ──
+async function fetchOpsBoard() {
+  try {
+    const r = await fetch(`${CONFIG.SYNC_API}/ops`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    liveOps = await r.json();
+    renderOpsBoard();
+    // Update badge: count red agents + P0 CEO tasks
+    const red = (liveOps.agents || []).filter(a => a.status === 'red').length;
+    const p0  = (liveOps.ceo_tasks || []).filter(t => t.priority === 'P0').length;
+    const total = red + p0;
+    document.getElementById('badge-ops').textContent = total || '—';
+  } catch(e) {
+    console.warn('Ops board fetch failed', e);
+    document.getElementById('badge-ops').textContent = '!';
+  }
+}
+
+// ── Render ops board ──
+function renderOpsBoard() {
+  renderCEOTasks();
+  renderAgentGrid();
+  if (liveOps.generated_at) {
+    const d = new Date(liveOps.generated_at);
+    document.getElementById('ops-sync-time').textContent =
+      'Board: ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+}
+
+// ── CEO task rows ──
+function renderCEOTasks() {
+  const el = document.getElementById('ops-ceo-tasks');
+  if (!el) return;
+  const tasks = liveOps.ceo_tasks || [];
+  if (!tasks.length) {
+    el.innerHTML = '<div class="empty-row">No open CEO tasks.</div>';
+    return;
+  }
+  el.innerHTML = tasks.map(t => {
+    const pClass = `cp-${t.priority || 'P3'}`;
+    return `
+      <div class="ceo-row">
+        <span class="ceo-p ${pClass}">${esc(t.priority || '—')}</span>
+        <div style="flex:1">
+          <div class="ceo-title">${esc(t.title)}</div>
+          <div class="ceo-cat">${esc(t.category || '')} · ${esc(t.status || '')}</div>
+          ${t.next_action ? `<div class="ceo-action">→ ${esc(t.next_action)}</div>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── Agent status grid ──
+function renderAgentGrid() {
+  const el = document.getElementById('ops-agent-grid');
+  if (!el) return;
+  const agents = liveOps.agents || [];
+  if (!agents.length) {
+    el.innerHTML = '<div class="empty-row">No agent data yet.</div>';
+    return;
+  }
+  el.innerHTML = agents.map(renderAgentCard).join('');
+}
+
+function renderAgentCard(agent) {
+  const colors = {
+    'main': '#5b4fe8',
+    'shopify-coo': '#1a9e75',
+    'marketing-cmo': '#d85a30',
+    'marketing-designer': '#c07a12',
+    'finance-cfo': '#3b82f6',
+  };
+  const initials = {
+    'main': 'SA',
+    'shopify-coo': 'PX',
+    'marketing-cmo': 'MA',
+    'marketing-designer': 'IR',
+    'finance-cfo': 'CO',
+  };
+  const dotClass = agent.status === 'green' ? 'dot-green' : agent.status === 'red' ? 'dot-red' : 'dot-yellow';
+  const bg = colors[agent.id] || '#5b4fe8';
+  const init = initials[agent.id] || (agent.name || '?')[0].toUpperCase();
+
+  return `
+    <div class="agent-card">
+      <div class="agent-head">
+        <div class="agent-av" style="background:${bg}">${init}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:7px">
+            <div class="agent-name">${esc(agent.name)}</div>
+            <span class="status-dot ${dotClass}"></span>
+          </div>
+          <div class="agent-role">${esc(agent.role)}</div>
+        </div>
+      </div>
+      <div class="agent-body">
+        <div class="agent-row">
+          <span class="agent-label">Focus</span>
+          <span class="agent-val">${esc(agent.current_focus || 'Idle')}</span>
+        </div>
+        <div class="agent-row">
+          <span class="agent-label">Next</span>
+          <span class="agent-val">${esc(agent.next_priority_item || '—')}</span>
+        </div>
+        ${agent.blocked_item ? `
+        <div class="agent-row">
+          <span class="agent-label">Blocked</span>
+          <span class="agent-val agent-blocked">${esc(agent.blocked_item)}</span>
+        </div>` : ''}
+      </div>
+    </div>`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INTEGRATION NOTE — also add fetchOpsBoard() to refreshAll() in app.js:
+//
+//  async function refreshAll() {
+//    ...
+//    await Promise.all([fetchEmails(), fetchEvents(), fetchDrive(), fetchOpsBoard()]);
+//    ...
+//  }
+//
+// And add it to showAppWithSampleData() call as well so it loads on first render:
+//
+//  function showAppWithSampleData() {
+//    ...
+//    renderAll();
+//    fetchOpsBoard(); // ← add this line
+//  }
+// ─────────────────────────────────────────────────────────────────────────────
