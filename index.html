@@ -285,6 +285,86 @@ html,body{height:100%;font-family:var(--font);font-size:15px;background:var(--bg
 ::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+
+/* ─── Revenue widget ─── */
+.revenue-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:1.5rem}
+.rev-item{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rlg);padding:.85rem 1rem;box-shadow:var(--shadow)}
+.rev-label{font-size:10.5px;font-weight:500;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px}
+.rev-val{font-size:19px;font-weight:500;font-family:var(--mono);line-height:1.2}
+
+/* ─── Weather widget ─── */
+.weather-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rlg);padding:.85rem 1rem;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;margin-bottom:1.5rem}
+.weather-icon{font-size:32px;line-height:1;flex-shrink:0}
+.weather-body{flex:1;min-width:0}
+.weather-temp{font-size:20px;font-weight:500;font-family:var(--mono);line-height:1.1}
+.weather-desc{font-size:12.5px;color:var(--text2);margin-top:2px}
+.weather-loc{font-size:11px;color:var(--text3);margin-top:2px;font-family:var(--mono)}
+
+/* ─── Quick links ─── */
+.quick-links-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:1.5rem}
+.qlink{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);text-decoration:none;color:var(--text);font-size:13px;font-weight:500;transition:all .12s;box-shadow:var(--shadow);min-height:44px}
+.qlink:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
+.qlink-icon{width:26px;height:26px;background:var(--accent-bg);color:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;font-family:var(--mono)}
+.qlink-label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ─── Trading + Services (ops) ─── */
+.trading-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0}
+.trading-cell{padding:14px 16px;border-right:0.5px solid var(--border)}
+.trading-cell:last-child{border-right:none}
+.trading-label{font-size:10.5px;font-weight:500;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px}
+.trading-val{font-size:18px;font-weight:500;font-family:var(--mono)}
+.services-row{display:flex;flex-wrap:wrap;gap:8px;padding:4px 0}
+.svc-pill{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;background:var(--surface);border:0.5px solid var(--border);border-radius:20px;font-size:12px;color:var(--text2);box-shadow:var(--shadow)}
+
+/* ─── Mobile hamburger button ─── */
+.menu-btn{display:none;background:none;border:0.5px solid var(--border2);border-radius:var(--r);padding:7px;cursor:pointer;color:var(--text);width:38px;height:38px;align-items:center;justify-content:center;flex-shrink:0}
+.menu-btn:hover{background:var(--surface2)}
+.sb-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:90}
+
+/* ─── Responsive ─── */
+@media(max-width:1024px){
+  .metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .revenue-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .two-col{grid-template-columns:1fr}
+}
+@media(max-width:768px){
+  html,body{font-size:14.5px}
+  .app{height:100dvh}
+  .sidebar{position:fixed;top:0;bottom:0;left:0;z-index:100;transform:translateX(-100%);transition:transform .22s ease;width:260px;box-shadow:2px 0 18px rgba(0,0,0,.18)}
+  .sidebar.open{transform:translateX(0)}
+  .main{width:100%}
+  .menu-btn{display:inline-flex}
+  .panel{padding:1rem}
+  .topbar{padding:.75rem 1rem;gap:10px}
+  .tb-left{gap:8px;flex:1;min-width:0}
+  .page-title{font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .page-date{display:none}
+  .tb-right .last-sync{display:none}
+  .refresh-btn{padding:8px 10px;min-height:38px}
+  .nav-btn{padding:12px 12px;font-size:14px;min-height:44px}
+  .filt{padding:8px 13px;min-height:36px}
+  .task-row,.email-row,.cal-row,.drive-row,.ceo-row{padding:13px 14px}
+  .tcheck{width:20px;height:20px}
+  .add-task-btn,.action-btn,.sec-link{min-height:36px;padding:8px 14px}
+  .projects-grid{grid-template-columns:1fr}
+  .project-strip{grid-template-columns:1fr}
+  .quick-links-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .trading-grid{grid-template-columns:1fr}
+  .trading-cell{border-right:none;border-bottom:0.5px solid var(--border)}
+  .trading-cell:last-child{border-bottom:none}
+  .auth-card{width:92vw;padding:1.75rem}
+  .modal{width:94vw;padding:1.2rem}
+  #ops-agent-grid{grid-template-columns:1fr !important}
+}
+@media(max-width:480px){
+  .metrics{grid-template-columns:1fr}
+  .revenue-strip{grid-template-columns:1fr}
+  .metric,.rev-item{padding:.8rem .9rem}
+  .metric-val{font-size:19px}
+  .rev-val{font-size:17px}
+  .weather-card{padding:.75rem .9rem;gap:10px}
+  .weather-icon{font-size:28px}
+}
 </style>
 
 </head>
@@ -380,6 +460,9 @@ html,body{height:100%;font-family:var(--font);font-size:15px;background:var(--bg
 
   <main class="main">
     <div class="topbar">
+      <button class="menu-btn" aria-label="Menu" onclick="toggleSidebar()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
       <div class="tb-left">
         <div class="page-title" id="page-title">Good morning, Austin</div>
         <div class="page-date" id="page-date"></div>
@@ -399,6 +482,20 @@ html,body{height:100%;font-family:var(--font);font-size:15px;background:var(--bg
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
     Add your Google Client ID to <code>config.js</code> to enable live data. <a href="#" onclick="document.getElementById('panel-overview').querySelector('.config-banner a').blur()">See setup guide →</a>
   </div>
+  <div class="sec-header"><span class="sec-title">PawZen Revenue</span></div>
+  <div class="revenue-strip" id="revenue-widget">
+    <div class="empty-row" style="grid-column:1/-1;padding:16px">Loading revenue…</div>
+  </div>
+
+  <div class="sec-header"><span class="sec-title">Weather</span></div>
+  <div class="weather-card" id="weather-widget">
+    <div class="weather-body"><div class="weather-desc">Loading weather…</div></div>
+  </div>
+
+  <div class="sec-header"><span class="sec-title">Quick Links</span></div>
+  <div class="quick-links-grid" id="quick-links"></div>
+
+  <div class="sec-header"><span class="sec-title">Overview</span></div>
   <div class="metrics">
     <div class="metric">
       <div class="metric-icon" style="background:var(--accent-bg);color:var(--accent)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg></div>
@@ -507,10 +604,17 @@ html,body{height:100%;font-family:var(--font);font-size:15px;background:var(--bg
     <span class="sec-title">Agent Operations Board</span>
     <span class="last-sync" id="ops-sync-time" style="font-size:11.5px;color:var(--text3);font-family:var(--mono)"></span>
   </div>
+
   <div class="sec-header" style="margin-bottom:.5rem">
-    <span class="sec-title">CEO Task Queue</span>
+    <span class="sec-title">Services</span>
   </div>
-  <div class="card" id="ops-ceo-tasks" style="margin-bottom:1.5rem"></div>
+  <div class="services-row" id="ops-services" style="margin-bottom:1.25rem"></div>
+
+  <div class="sec-header" style="margin-bottom:.5rem">
+    <span class="sec-title">Trading</span>
+  </div>
+  <div class="card" id="ops-trading" style="margin-bottom:1.5rem"></div>
+
   <div class="sec-header" style="margin-bottom:.5rem">
     <span class="sec-title">Agent Status</span>
   </div>
@@ -518,6 +622,9 @@ html,body{height:100%;font-family:var(--font);font-size:15px;background:var(--bg
 </section>
   </main>
 </div>
+
+<!-- Mobile sidebar backdrop -->
+<div class="sb-backdrop" id="sb-backdrop" onclick="closeSidebar()"></div>
 
 <!-- ADD PROJECT MODAL -->
 
