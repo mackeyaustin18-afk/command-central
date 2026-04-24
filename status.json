@@ -1,5 +1,5 @@
 {
-  "generated": "2026-04-24T12:58:57.115Z",
+  "generated": "2026-04-24T12:59:38.069Z",
   "revenue": {
     "today": 0,
     "week": 0,
@@ -73,6 +73,6 @@
     "shopify": "up",
     "n8n": "up",
     "trading_bots": "up",
-    "openclaw": "down"
+    "openclaw": "up"
   }
 }
