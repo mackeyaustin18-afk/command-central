@@ -1,5 +1,5 @@
 {
-  "generated": "2026-04-24T12:00:00Z",
+  "generated": "2026-04-24T12:58:17.579Z",
   "revenue": {
     "today": 0,
     "week": 0,
@@ -7,13 +7,62 @@
     "total_orders": 0
   },
   "agents": [
-    {"id": "main", "name": "Sal", "role": "CTO / Orchestrator", "status": "green", "current_focus": "Command Central modernization", "next_priority_item": "Traffic activation"},
-    {"id": "shopify-coo", "name": "Pax", "role": "Store Operations", "status": "green", "current_focus": "Product catalog", "next_priority_item": "SEO optimization"},
-    {"id": "marketing-cmo", "name": "Mara", "role": "Content & SEO", "status": "green", "current_focus": "Blog content pipeline", "next_priority_item": "Pinterest strategy"},
-    {"id": "marketing-designer", "name": "Iris", "role": "Design & Assets", "status": "green", "current_focus": "Product images", "next_priority_item": "Pinterest pins"},
-    {"id": "devops", "name": "Wraith", "role": "Infrastructure", "status": "green", "current_focus": "System monitoring", "next_priority_item": "Cron optimization"},
-    {"id": "quant", "name": "Quant", "role": "Trading Analysis", "status": "green", "current_focus": "Strategy optimization", "next_priority_item": "Weekly P&L report"},
-    {"id": "codex", "name": "Codex", "role": "Code Agent", "status": "green", "current_focus": "Command Central", "next_priority_item": "Feature builds"}
+    {
+      "id": "main",
+      "name": "Sal",
+      "role": "CTO / Orchestrator",
+      "status": "green",
+      "current_focus": "",
+      "next_priority_item": ""
+    },
+    {
+      "id": "shopify-coo",
+      "name": "Pax",
+      "role": "Store Operations",
+      "status": "green",
+      "current_focus": "",
+      "next_priority_item": ""
+    },
+    {
+      "id": "marketing-cmo",
+      "name": "Mara",
+      "role": "Content & SEO",
+      "status": "green",
+      "current_focus": "",
+      "next_priority_item": ""
+    },
+    {
+      "id": "marketing-designer",
+      "name": "Iris",
+      "role": "Design & Assets",
+      "status": "green",
+      "current_focus": "",
+      "next_priority_item": ""
+    },
+    {
+      "id": "devops",
+      "name": "Wraith",
+      "role": "Infrastructure",
+      "status": "green",
+      "current_focus": "",
+      "next_priority_item": ""
+    },
+    {
+      "id": "quant",
+      "name": "Quant",
+      "role": "Trading Analysis",
+      "status": "green",
+      "current_focus": "",
+      "next_priority_item": ""
+    },
+    {
+      "id": "codex",
+      "name": "Codex",
+      "role": "Code Agent",
+      "status": "green",
+      "current_focus": "",
+      "next_priority_item": ""
+    }
   ],
   "trading": {
     "active_bots": 4,
@@ -24,6 +73,6 @@
     "shopify": "up",
     "n8n": "up",
     "trading_bots": "up",
-    "openclaw": "up"
+    "openclaw": "down"
   }
 }
