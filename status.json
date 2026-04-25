@@ -1,5 +1,5 @@
 {
-  "generated": "2026-04-25T09:17:16.613Z",
+  "generated": "2026-04-25T11:17:21.533Z",
   "revenue": {
     "today": 0,
     "week": 0,
@@ -68,7 +68,7 @@
     "active_bots": 4,
     "today_pnl": 1.14,
     "open_positions": 0,
-    "total_trades": 107,
+    "total_trades": 108,
     "total_sells": 51
   },
   "services": {
