@@ -1,5 +1,5 @@
 {
-  "generated": "2026-04-25T01:17:10.177Z",
+  "generated": "2026-04-25T02:48:55.255Z",
   "revenue": {
     "today": 0,
     "week": 0,
@@ -66,8 +66,10 @@
   ],
   "trading": {
     "active_bots": 4,
-    "today_pnl": 0,
-    "open_positions": 0
+    "today_pnl": 1.14,
+    "open_positions": 0,
+    "total_trades": 105,
+    "total_sells": 51
   },
   "services": {
     "shopify": "up",
