@@ -70,11 +70,7 @@ google.accounts.id.initialize({
 client_id: CONFIG.GOOGLE_CLIENT_ID,
 callback: handleCredential,
 });
-const token = sessionStorage.getItem('cc_token');
-if (token) {
-gToken = token;
-launchApp();
-}
+// Keep OAuth access tokens in memory only. Do not restore browser-accessible stored tokens.
 }
 
 function startSignIn() {
@@ -93,7 +89,7 @@ scope: [
 callback: (resp) => {
 if (resp.access_token) {
 gToken = resp.access_token;
-sessionStorage.setItem('cc_token', gToken);
+// Access token intentionally remains memory-only.
 launchApp();
 } else {
 btn.disabled = false;
@@ -118,7 +114,12 @@ if (r.name) {
 document.getElementById('user-name').textContent = r.name;
 document.getElementById('user-email').textContent = r.email || '';
 if (r.picture) {
-document.getElementById('user-avatar').innerHTML = `<img src="${r.picture}" alt="">`;
+const avatar = document.getElementById('user-avatar');
+avatar.textContent = '';
+const img = document.createElement('img');
+img.src = sanitizeUrl(r.picture);
+img.alt = '';
+avatar.appendChild(img);
 } else {
 document.getElementById('user-avatar').textContent = (r.name||'?')[0].toUpperCase();
 }
@@ -323,9 +324,9 @@ document.getElementById('full-drive').innerHTML = liveFiles.length
 
 // ── Row renderers ──
 function renderEmailRow(e) {
-return `<div class="email-row" onclick="window.open('https://mail.google.com/mail/u/0/#inbox/${e.id}','_blank')">
+return `<div class="email-row" onclick="openSafeUrl('https://mail.google.com/mail/u/0/#inbox/${safeJsString(e.id)}')">
 ${e.unread?'<div class="unread-dot"></div>':'<div class="read-gap"></div>'}
-<div class="email-av" style="background:${e.avatarBg};color:${e.avatarColor}">${e.initials}</div>
+<div class="email-av" style="background:${e.avatarBg};color:${e.avatarColor}">${esc(e.initials)}</div>
 <div class="email-body">
 <div class="email-from">${esc(e.from)}</div>
 <div class="email-subj">${esc(e.subject)}</div>
@@ -336,7 +337,7 @@ ${e.unread?'<div class="unread-dot"></div>':'<div class="read-gap"></div>'}
 }
 
 function renderCalRow(ev) {
-return `<div class="cal-row" onclick="ev.htmlLink&&window.open(ev.htmlLink,'_blank')">
+return `<div class="cal-row" onclick="openSafeUrl(decodeURIComponent('${safeJsString(ev.htmlLink)}'))">
 <div class="cal-time">${ev.time}</div>
 <div class="cal-bar" style="background:${ev.color}"></div>
 <div><div class="cal-name">${esc(ev.name)}</div><div class="cal-detail">${esc(ev.detail)}</div></div>
@@ -356,7 +357,7 @@ return `<div class="task-row" id="tr-${t.id}">
 }
 
 function renderDriveRow(f) {
-return `<div class="drive-row" onclick="window.open('${f.url}','_blank')">
+return `<div class="drive-row" onclick="openSafeUrl(decodeURIComponent('${safeJsString(f.url)}'))">
 <div class="drive-icon" style="background:${f.iconBg};color:${f.iconColor}">${f.icon}</div>
 <div class="drive-name">${esc(f.name)}</div>
 <div class="drive-meta">${f.meta}</div>
@@ -365,10 +366,10 @@ return `<div class="drive-row" onclick="window.open('${f.url}','_blank')">
 }
 
 function renderProjStrip(p) {
-const lnk = p.links.map(l=>`<a class="ps-link" href="${l.url}" target="_blank">${esc(l.label)}</a>`).join('');
-return `<div class="ps-card" style="border-left:3px solid ${p.color}" onclick="gotoPanel('projects')">
+const lnk = p.links.map(l=>`<a class="ps-link" href="${safeHref(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join('');
+return `<div class="ps-card" style="border-left:3px solid ${safeColor(p.color)}" onclick="gotoPanel('projects')">
 <div class="ps-top">
-<div class="ps-av" style="background:${p.color}">${p.initials}</div>
+<div class="ps-av" style="background:${safeColor(p.color)}">${esc(p.initials)}</div>
 <div class="ps-name">${esc(p.name)}</div>
 <span class="status-pill ${spClass(p.status)}">${spLabel(p.status)}</span>
 </div>
@@ -380,10 +381,10 @@ return `<div class="ps-card" style="border-left:3px solid ${p.color}" onclick="g
 }
 
 function renderProjCard(p) {
-const lnk = p.links.map(l=>`<a class="pc-link" href="${l.url}" target="_blank">↗ ${esc(l.label)}</a>`).join('');
-return `<div class="pc" style="border-left:4px solid ${p.color}">
+const lnk = p.links.map(l=>`<a class="pc-link" href="${safeHref(l.url)}" target="_blank" rel="noopener">↗ ${esc(l.label)}</a>`).join('');
+return `<div class="pc" style="border-left:4px solid ${safeColor(p.color)}">
 <div class="pc-head">
-<div class="pc-av" style="background:${p.color}">${p.initials}</div>
+<div class="pc-av" style="background:${safeColor(p.color)}">${esc(p.initials)}</div>
 <div><div class="pc-name">${esc(p.name)}</div><span class="status-pill ${spClass(p.status)}">${spLabel(p.status)}</span></div>
 </div>
 <div class="pc-desc">${esc(p.description)}</div>
@@ -524,7 +525,15 @@ function appendMsg(text, role) {
 const msgs = document.getElementById('ai-msgs');
 const div = document.createElement('div');
 div.className = `ai-msg ai-msg-${role} clearfix`;
-div.innerHTML = `<div class="ai-bubble">${text}</div>`;
+const bubble = document.createElement('div');
+bubble.className = 'ai-bubble';
+if (role === 'bot') {
+// aiReply returns trusted templates with dynamic values escaped via esc().
+bubble.innerHTML = text;
+} else {
+bubble.textContent = text;
+}
+div.appendChild(bubble);
 msgs.appendChild(div);
 msgs.scrollTop = msgs.scrollHeight;
 }
@@ -639,7 +648,34 @@ function spClass(s) { return {active:'sp-active','in-progress':'sp-progress','on
 function spLabel(s) { return {active:'Active','in-progress':'In progress','on-hold':'On hold',done:'Done'}[s]||s; }
 
 function esc(str) {
-return String(str||'').replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'"');
+const entities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+return String(str ?? '').replace(/[&<>"']/g, ch => entities[ch]);
+}
+
+function sanitizeUrl(raw) {
+if (!raw) return '#';
+try {
+const base = window.location && window.location.href ? window.location.href : 'https://mackeyaustin18-afk.github.io/command-central/';
+const parsed = new URL(String(raw), base);
+if (['http:', 'https:', 'mailto:'].includes(parsed.protocol)) return parsed.href;
+} catch (_) {}
+return '#';
+}
+
+function safeHref(raw) { return esc(sanitizeUrl(raw)); }
+
+function safeJsString(raw) {
+return encodeURIComponent(String(raw || ''));
+}
+
+function safeColor(raw, fallback = '#5b4fe8') {
+const value = String(raw || '').trim();
+return /^#[0-9a-fA-F]{3,8}$/.test(value) ? value : fallback;
+}
+
+function openSafeUrl(raw) {
+const url = sanitizeUrl(raw);
+if (url !== '#') window.open(url, '_blank', 'noopener');
 }
 
 function skeletonRows(n) {
@@ -869,7 +905,7 @@ function renderQuickLinks() {
   if (!el) return;
   const links = (CONFIG && CONFIG.QUICK_LINKS) || [];
   el.innerHTML = links.map(l =>
-    `<a class="qlink" href="${l.url}" target="_blank" rel="noopener">
+    `<a class="qlink" href="${safeHref(l.url)}" target="_blank" rel="noopener">
        <span class="qlink-icon">${esc(l.icon || '↗')}</span>
        <span class="qlink-label">${esc(l.label)}</span>
      </a>`
