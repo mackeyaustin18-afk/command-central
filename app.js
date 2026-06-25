@@ -527,12 +527,7 @@ const div = document.createElement('div');
 div.className = `ai-msg ai-msg-${role} clearfix`;
 const bubble = document.createElement('div');
 bubble.className = 'ai-bubble';
-if (role === 'bot') {
-// aiReply returns trusted templates with dynamic values escaped via esc().
-bubble.innerHTML = text;
-} else {
 bubble.textContent = text;
-}
 div.appendChild(bubble);
 msgs.appendChild(div);
 msgs.scrollTop = msgs.scrollHeight;
@@ -543,25 +538,25 @@ const t = text.toLowerCase();
 if (t.includes('email') || t.includes('inbox')) {
 const unread = liveEmails.filter(e=>e.unread);
 if (!unread.length) return `Your inbox looks clear — no unread emails right now. Want me to help draft a new message?`;
-return `You have <strong>${unread.length} unread emails</strong>. Most recent: <em>${esc(unread[0].from)}</em> — "${esc(unread[0].subject)}". Want me to draft a reply?`;
+return `You have ${unread.length} unread emails. Most recent: ${unread[0].from} — "${unread[0].subject}". Want me to draft a reply?`;
 }
 if (t.includes('project')) {
-const list = projects.map(p=>`<strong>${esc(p.name)}</strong> (${spLabel(p.status)})`).join(', ');
+const list = projects.map(p=>`${p.name} (${spLabel(p.status)})`).join(', ');
 return `You have ${projects.length} project${projects.length!==1?'s':''}: ${list}. Want to update any of them or break one into tasks?`;
 }
 if (t.includes('task') || t.includes('focus') || t.includes('today') || t.includes('prioritize')) {
 const due = tasks.filter(t=>t.tag==='today'&&!t.done);
 if (!due.length) return `No tasks due today — you're either all caught up or haven't added any yet. Want me to help you plan?`;
-return `You have <strong>${due.length} task${due.length!==1?'s':''} due today</strong>: ${due.map(t=>`<em>${esc(t.text)}</em>`).join(', ')}. Want me to help prioritize or break any of them down?`;
+return `You have ${due.length} task${due.length!==1?'s':''} due today: ${due.map(t=>t.text).join(', ')}. Want me to help prioritize or break any of them down?`;
 }
 if (t.includes('calendar') || t.includes('event') || t.includes('week') || t.includes('schedule') || t.includes('meeting')) {
 const todayEvs = liveEvents.filter(e=>e.day==='Today');
 if (!todayEvs.length) return `Your calendar looks clear today. Want me to help you block some focus time or add an event?`;
-return `You have <strong>${todayEvs.length} event${todayEvs.length!==1?'s':''} today</strong>: ${todayEvs.map(e=>`<em>${esc(e.name)}</em> at ${e.time}`).join(', ')}. Want me to help with anything specific?`;
+return `You have ${todayEvs.length} event${todayEvs.length!==1?'s':''} today: ${todayEvs.map(e=>`${e.name} at ${e.time}`).join(', ')}. Want me to help with anything specific?`;
 }
 if (t.includes('drive') || t.includes('file') || t.includes('doc')) {
 if (!liveFiles.length) return `No Drive files loaded yet — try hitting Refresh to sync your Drive.`;
-return `Your most recently accessed file is <strong>${esc(liveFiles[0].name)}</strong>. You have ${liveFiles.length} recent files loaded. Want me to help find something specific?`;
+return `Your most recently accessed file is ${liveFiles[0].name}. You have ${liveFiles.length} recent files loaded. Want me to help find something specific?`;
 }
 if (t.includes('draft') || t.includes('write') || t.includes('compose') || t.includes('reply')) {
 return `Sure — who are you writing to and what's the message? Give me a few details and I'll draft something clean for you.`;
