@@ -119,3 +119,87 @@ assert(!source.includes("sessionStorage.setItem('cc_token'"), 'Google access tok
 assert(!source.includes("sessionStorage.getItem('cc_token'"), 'Google access tokens must not be restored from sessionStorage');
 
 console.log('command-central security checks passed');
+
+// Exercise the generated handler source after HTML attribute decoding, as a
+// browser does on click. All APIs and window.open remain local test doubles.
+const test = require('node:test');
+function clickRow(html) {
+  const match = html.match(/\bonclick="([^"]*)"/);
+  assert(match, 'row must have a click handler');
+  const entities = { amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'" };
+  const handler = match[1].replace(/&(amp|lt|gt|quot|#39);/g, (_, key) => entities[key]);
+  vm.runInContext(handler, context);
+}
+const linkRows = [
+  { name: 'email', render: value => context.renderEmailRow({ id: value }),
+    attack: "'-alert(1)-'", expected: value => 'https://mail.google.com/mail/u/0/#inbox/' + encodeURIComponent(value).replace(/'/g, '%27') },
+  { name: 'calendar', render: value => context.renderCalRow({ htmlLink: value }),
+    attack: "')-alert(1)-('", expected: value => context.sanitizeUrl(value) },
+  { name: 'Drive', render: value => context.renderDriveRow({ url: value }),
+    attack: "')-alert(1)-('", expected: value => context.sanitizeUrl(value) },
+];
+for (const row of linkRows) {
+  test(`${row.name}: apostrophes cannot execute code in row handlers`, () => {
+    const alerts = [];
+    const opened = [];
+    context.alert = value => alerts.push(value);
+    context.window.open = (...args) => opened.push(args);
+    const value = 'https://example.com/' + row.attack;
+    clickRow(row.render(value));
+    assert.deepStrictEqual(alerts, [], 'click must not execute injected alert');
+    assert.deepStrictEqual(opened, [[row.expected(value), '_blank', 'noopener']]);
+  });
+  test(`${row.name}: URL punctuation and Unicode survive a click`, () => {
+    const opened = [];
+    context.window.open = (...args) => opened.push(args);
+    const value = 'https://example.com/O\'Brien?q="<&>#雪%20&entity=&#39;';
+    clickRow(row.render(value));
+    assert.deepStrictEqual(opened, [[row.expected(value), '_blank', 'noopener']]);
+  });
+  if (row.name !== 'email') {
+    test(`${row.name}: unsafe URL schemes remain blocked on click`, () => {
+      const opened = [];
+      context.window.open = (...args) => opened.push(args);
+      for (const value of ['javascript:alert(1)', 'data:text/html,<svg onload=alert(1)>']) {
+        clickRow(row.render(value));
+      }
+      assert.deepStrictEqual(opened, []);
+    });
+  }
+}
+
+const markup = '<img src=x onerror=alert(1)>&"\'';
+for (const field of ['active_bots', 'open_positions']) {
+  test(`trading: ${field} renders as text`, () => {
+    context.tradingFixture = { active_bots: 3, open_positions: 2, [field]: markup };
+    vm.runInContext('liveOps = { trading: tradingFixture }; renderTradingCard()', context);
+    const html = getElement('ops-trading').innerHTML;
+    assert(!html.includes('<img'), 'feed markup must not create an element');
+    assert(html.includes(context.esc(markup)), 'feed text must be escaped');
+  });
+}
+test('trading: numeric values, zero and missing values retain their display', () => {
+  for (const value of [3, '2', 0, undefined]) {
+    context.tradingFixture = { active_bots: value, open_positions: value };
+    vm.runInContext('liveOps = { trading: tradingFixture }; renderTradingCard()', context);
+    assert.strictEqual(getElement('ops-trading').innerHTML.split(`<div class="trading-val">${value || 0}</div>`).length - 1, 2);
+  }
+});
+
+test('weather: temperature renders as text with mocked fetch', async () => {
+  const originalFetch = context.fetch;
+  try {
+    for (const value of [markup, '72', '-5', undefined]) {
+      context.fetch = async () => ({ ok: true, json: async () => ({
+        current_condition: [{ temp_F: value, weatherDesc: [{ value: 'Clear' }] }],
+      }) });
+      await context.fetchWeather();
+      const html = getElement('weather-widget').innerHTML;
+      assert(!html.includes('<img'), 'weather markup must not create an element');
+      assert(html.includes(`<div class="weather-temp">${context.esc(value || '—')}°F</div>`));
+      assert(html.includes('Clear'), 'weather description must still render');
+    }
+  } finally {
+    context.fetch = originalFetch;
+  }
+});

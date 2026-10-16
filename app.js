@@ -660,7 +660,9 @@ return '#';
 function safeHref(raw) { return esc(sanitizeUrl(raw)); }
 
 function safeJsString(raw) {
-return encodeURIComponent(String(raw || ''));
+// URI encoding leaves apostrophes intact; encode them too for the single-quoted
+// JavaScript string inside a double-quoted HTML event-handler attribute.
+return encodeURIComponent(String(raw || '')).replace(/'/g, '%27');
 }
 
 function safeColor(raw, fallback = '#5b4fe8') {
@@ -764,9 +766,9 @@ function renderTradingCard() {
   const pnlStr = (pnl >= 0 ? '+' : '') + '$' + pnl.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
   el.innerHTML = `
     <div class="trading-grid">
-      <div class="trading-cell"><div class="trading-label">Active bots</div><div class="trading-val">${t.active_bots || 0}</div></div>
+      <div class="trading-cell"><div class="trading-label">Active bots</div><div class="trading-val">${esc(t.active_bots || 0)}</div></div>
       <div class="trading-cell"><div class="trading-label">Today P&L</div><div class="trading-val" style="color:${pnlColor}">${pnlStr}</div></div>
-      <div class="trading-cell"><div class="trading-label">Open positions</div><div class="trading-val">${t.open_positions || 0}</div></div>
+      <div class="trading-cell"><div class="trading-label">Open positions</div><div class="trading-val">${esc(t.open_positions || 0)}</div></div>
     </div>
   `;
 }
@@ -870,7 +872,7 @@ async function fetchWeather() {
     el.innerHTML = `
       <div class="weather-icon">${icon}</div>
       <div class="weather-body">
-        <div class="weather-temp">${tempF}°F</div>
+        <div class="weather-temp">${esc(tempF)}°F</div>
         <div class="weather-desc">${esc(desc)}</div>
         <div class="weather-loc">${esc(loc)}</div>
       </div>`;
