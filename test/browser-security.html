@@ -1,0 +1,86 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; connect-src 'none'; img-src 'none'; style-src 'unsafe-inline'">
+<title>Command Central isolated browser regression</title>
+<h1>Isolated browser security regression</h1>
+<p>Synthetic data only. Fetch and window.open are mocked; network connections are blocked.</p>
+<button id="run">Run browser regressions</button>
+<pre id="results">Ready</pre>
+<div id="rows"></div><div id="ops-trading"></div><div id="weather-widget"></div>
+<!-- Serve the repository on an isolated loopback origin, then open this file. -->
+<script>
+/* Serve this page and ../app.js on an isolated loopback origin. No real APIs. */
+const CONFIG = { WEATHER_LOCATION: 'Synthetic location' };
+const alerts = [], opened = [], errors = [];
+window.alert = value => alerts.push(value);
+window.open = (...args) => opened.push(args);
+window.addEventListener('error', event => errors.push(event.message));
+Object.defineProperty(window, 'localStorage', { value: {
+  getItem: key => key === 'cc_tasks' || key === 'cc_projects' ? '[{}]' : null,
+  setItem() {}, removeItem() {},
+} });
+let weatherValue;
+window.fetch = async () => ({ ok: true, json: async () => ({
+  current_condition: [{ temp_F: weatherValue, weatherDesc: [{ value: 'Clear' }] }],
+}) });
+let loaded = false, runs = 0;
+const output = document.getElementById('results');
+const rows = document.getElementById('rows');
+document.getElementById('run').onclick = async () => {
+  try {
+    if (!loaded) {
+      // Loading after DOMContentLoaded prevents production startup callbacks.
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = '../app.js'; script.onload = resolve; script.onerror = reject;
+        document.body.appendChild(script);
+      });
+      loaded = true;
+    }
+    let checks = 0;
+    const check = (condition, label) => { if (!condition) throw new Error(label); checks++; };
+    alerts.length = opened.length = errors.length = 0;
+    const definitions = [
+      ['email', value => renderEmailRow({ id: value, from: 'Synthetic email' }), value => 'https://mail.google.com/mail/u/0/#inbox/' + encodeURIComponent(value).replace(/'/g, '%27')],
+      ['calendar', value => renderCalRow({ htmlLink: value, name: 'Synthetic calendar' }), value => sanitizeUrl(value)],
+      ['Drive', value => renderDriveRow({ url: value, name: 'Synthetic Drive' }), value => sanitizeUrl(value)],
+    ];
+    for (let round = 0; round < 3; round++) {
+      for (const [name, render, expected] of definitions) {
+        for (const value of [
+          "https://example.invalid/O'Brien",
+          "https://example.invalid/'-alert(1)-'",
+          "https://example.invalid/')-alert(1)-('",
+          'https://example.invalid/?q="<&>#雪%20&entity=&#39;',
+          'javascript:alert(1)', 'data:text/html,<svg onload=alert(1)>',
+        ]) {
+          rows.innerHTML = render(value);
+          const before = opened.length;
+          rows.firstElementChild.click();
+          rows.firstElementChild.click();
+          const url = expected(value);
+          check(opened.length === before + (url === '#' ? 0 : 2), `${name}: repeated click count`);
+          if (url !== '#') check(opened.slice(before).every(args => JSON.stringify(args) === JSON.stringify([url, '_blank', 'noopener'])), `${name}: destination and opener protection`);
+          check(alerts.length === 0 && errors.length === 0, `${name}: inert handler input`);
+        }
+      }
+      for (const value of ['<img src=x onerror=alert(1)>&"\'', '<svg onload=alert(1)>', '72', '-5', 0, undefined]) {
+        liveOps = { trading: { active_bots: value, open_positions: value } };
+        renderTradingCard();
+        const trading = document.getElementById('ops-trading');
+        check(!trading.querySelector('img,svg,script'), 'trading: no injected elements');
+        check([...trading.querySelectorAll('.trading-val')].filter(el => el.textContent === String(value || 0)).length === 2, 'trading: exact text');
+        weatherValue = value;
+        await fetchWeather();
+        const weather = document.getElementById('weather-widget');
+        check(!weather.querySelector('img,svg,script'), 'weather: no injected elements');
+        check(weather.querySelector('.weather-temp').textContent === String(value || '—') + '°F', 'weather: exact text');
+      }
+    }
+    check(alerts.length === 0 && errors.length === 0, 'no execution or browser script errors');
+    runs++;
+    output.textContent = `PASS: ${checks} assertions; 3 render rounds; 108 synthetic row clicks; 18 trading + 18 weather renders; 0 alerts; 0 script errors. Completed runs: ${runs}.`;
+  } catch (error) { output.textContent = 'FAIL: ' + (error.stack || error); }
+};
+
+</script>
